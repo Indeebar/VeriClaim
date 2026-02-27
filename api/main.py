@@ -10,7 +10,12 @@ from models.fraud_classifier.shap_explain import load_explainer
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Load all models once at startup
+    # Download models from Hugging Face if not present
+    print('Checking model files...')
+    from scripts.download_models import download_models
+    download_models()
+
+    # Load all models into memory
     print('Loading models...')
     load_model('models/damage_classifier/best_model.pt')
     load_nlp_model('models/claim_nlp/fraud_patterns.json')
@@ -18,7 +23,6 @@ async def lifespan(app: FastAPI):
     load_explainer('models/fraud_classifier/xgb_fraud_model.pkl')
     print('All models loaded. API ready.')
     yield
-    # Shutdown — nothing to clean up
 
 
 app = FastAPI(

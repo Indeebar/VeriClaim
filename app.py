@@ -189,7 +189,8 @@ html, body, [class*="css"] {
 """, unsafe_allow_html=True)
 
 # ── Config ─────────────────────────────────────────────────────────────────────
-API_URL = 'http://localhost:8000'
+import os
+API_URL = os.environ.get('API_URL', 'https://vericlaim-api.onrender.com')
 
 # ── Header ─────────────────────────────────────────────────────────────────────
 st.markdown("""
