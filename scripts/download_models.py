@@ -1,7 +1,3 @@
-"""
-Downloads model files from Hugging Face at startup.
-Only downloads if files do not already exist locally.
-"""
 import os
 import shutil
 from huggingface_hub import hf_hub_download
@@ -31,14 +27,18 @@ def download_models():
             continue
 
         print(f"[HF] Downloading {m['filename']} from {HF_REPO}...")
-        path = hf_hub_download(
-            repo_id   = HF_REPO,
-            filename  = m['filename'],
-            local_dir = '.'
-        )
-        shutil.move(path, m['local_path'])
-        size = os.path.getsize(m['local_path'])
-        print(f"[HF] Saved: {m['local_path']} ({size} bytes)")
+        try:
+            path = hf_hub_download(
+                repo_id   = HF_REPO,
+                filename  = m['filename'],
+                local_dir = '/tmp/hf_downloads'
+            )
+            shutil.copy2(path, m['local_path'])
+            size = os.path.getsize(m['local_path'])
+            print(f"[HF] Saved: {m['local_path']} ({size} bytes)")
+        except Exception as e:
+            print(f"[HF] Error downloading {m['filename']}: {e}")
+            raise
 
 
 if __name__ == '__main__':
