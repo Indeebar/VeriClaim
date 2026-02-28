@@ -10,20 +10,27 @@ from models.fraud_classifier.shap_explain import load_explainer
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Download models from Hugging Face if not present
-    print('Checking model files...')
-    from scripts.download_models import download_models
-    download_models()
+    import os
+    
+    # 🔥 Only download if models are missing (prevents repeated heavy downloads)
+    if not os.path.exists('models/damage_classifier/best_model.pt'):
+        print('Models not found. Downloading from Hugging Face...')
+        from scripts.download_models import download_models
+        download_models()
+    else:
+        print('Models already present. Skipping download.')
 
-    # Load all models into memory
-    print('Loading models...')
+    # Load all models into memory ONCE at startup
+    print('Loading models into memory...')
     load_model('models/damage_classifier/best_model.pt')
     load_nlp_model('models/claim_nlp/fraud_patterns.json')
     load_fraud_model('models/fraud_classifier/xgb_fraud_model.pkl')
+    
+    # ⚠️ SHAP is extremely heavy — load last
     load_explainer('models/fraud_classifier/xgb_fraud_model.pkl')
+
     print('All models loaded. API ready.')
     yield
-
 
 app = FastAPI(
     title       = 'VeriClaim API',
